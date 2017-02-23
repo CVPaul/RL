@@ -1,0 +1,7 @@
+./src/thirdparty/bin/
+./src/thirdparty/lib/
+./data/
+*.so
+main
+training
+testing

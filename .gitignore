@@ -1,5 +1,6 @@
-./src/thirdparty/bin/
-./src/thirdparty/lib/
+src/thirdparty/bin
+src/thirdparty/lib
+src/thirdparty/pkg
 ./data/
 *.so
 main

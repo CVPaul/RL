@@ -5,6 +5,7 @@ import (
 	"container/list"
 	"fmt"
 	"log"
+	"os"
 	"utils"
 )
 
@@ -117,14 +118,8 @@ func (self *BenchMarkAI) Init() error {
 }
 
 func (self *BenchMarkAI) InitTraining() error {
-	self.PathMat = utils.NewMat(common.STATUS_X_SIZE, common.STATUS_Y_SIZE, 0)
-	if nil == self.PathMat {
-		return fmt.Errorf("BenchMarkAI[Init Failed]||err_msg=Bad assignment[PathMat]")
-	}
-	self.DistMat = utils.NewMat(common.STATUS_X_SIZE, common.STATUS_Y_SIZE, 0)
-	if nil == self.DistMat {
-		return fmt.Errorf("BenchMarkAI[Init Failed]||err_msg=Bad assignment[DistMat]")
-	}
+	log.Print("BencheMarkAI do not need training")
+	os.Exit(-1)
 	return nil
 }
 

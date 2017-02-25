@@ -8,7 +8,7 @@ const ( // global values for greedy_snake
 	MAGIC_NUM     = 2
 
 	SLEEP_TIME         = 10
-	TIME_FOR_SPEED_CTR = 1
+	TIME_FOR_SPEED_CTR = 100
 
 	NOTHING_REWARD = -1
 	FOOD_REWARD    = 100
@@ -17,7 +17,7 @@ const ( // global values for greedy_snake
 	ACTION_CNT = 4
 	// parameters
 	PARAM_POLICY_PATH = "data/policy."
-	MINIMIZE_EPSILON  = 0.1
+	MINIMIZE_EPSILON  = 0.00
 )
 
 var ACTIONS = []string{"U", "D", "L", "R"}
@@ -42,15 +42,16 @@ var GoStraight_r = map[string]string{"U": "U", "D": "D", "L": "L", "R": "R"}
 var TurnLeft_r = map[string]string{"L": "U", "R": "D", "D": "L", "U": "R"}
 var TurnRight_r = map[string]string{"R": "U", "L": "D", "U": "L", "D": "R"}
 
-const ( // RL coonst define
-	EAT_FOOD       = 600
-	HIT_WALL       = -1000
+const ( // RL const define
+	EAT_FOOD       = 550
+	HIT_WALL       = -700
 	DEFAULT_REWARD = -10
 	DEFAULT_VALUE  = 0
 
 	SAVE_EVERY_ITER = 1000000
-	DEGREE_SPLIT    = 30
+	DEGREE_SPLIT    = 90
 	EPSILON_FAC     = 1000000.0
+	POWER_PARAM     = 1.0
 
 	SHOW    = false
 	DEBUG   = false

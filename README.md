@@ -22,3 +22,6 @@
         - run: ./training greedy // example 01
         - run: ./training benchmark // example 02
         - run: ./training sarsa // example 03
+
+## Change Log
+- 2017-02-25 update the bin file for user conveniet and refined the framework again

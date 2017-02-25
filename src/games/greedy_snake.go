@@ -85,17 +85,9 @@ func (self *Game) Init() error {
 	// init rander
 	g_rand = &utils.Rander{}
 	g_rand.Srand(common.SEED)
-	// init ai
-	// self.agent = &robot.SnakeAI{}
-	// self.agent = &robot.GreedyAI{}
-	self.agent = &robot.BenchMarkAI{}
-	err := self.agent.Init()
-	if nil != err {
-		return fmt.Errorf("Game init failed[agent]||err_msg=%s", err.Error())
-	}
 	// init game
 	self.Snake_ = new(Snake)
-	err = self.Snake_.Init() // initialize the snake
+	err := self.Snake_.Init() // initialize the snake
 	if nil != err {
 		return fmt.Errorf("Game init failed[snake]||err_msg=%s", err.Error())
 	}
@@ -109,14 +101,15 @@ func (self *Game) Init() error {
 	return nil
 }
 
-func (self *Game) InitTraining() error {
+func (self *Game) InitTraining(ai string) error {
 	// init rander
 	g_rand = &utils.Rander{}
 	g_rand.Srand(common.SEED)
 	// init ai
-	// self.agent = &robot.SnakeAI{}
-	// self.agent = &robot.BenchMarkAI{}
-	self.agent = &robot.SarsaAI{}
+	self.agent = AIFactory(ai)
+	if nil == self.agent {
+		return fmt.Errorf("Do not have agent named:\"%s\", please look at the end of \"greedy_snake.go\" for ai name that support!", ai)
+	}
 	err := self.agent.InitTraining()
 	if nil != err {
 		return fmt.Errorf("Agent init failed||err_msg=%s", err.Error())
@@ -137,13 +130,15 @@ func (self *Game) InitTraining() error {
 	return nil
 }
 
-func (self *Game) InitTesting() error {
+func (self *Game) InitTesting(ai string) error {
 	// init rander
 	g_rand = &utils.Rander{}
 	g_rand.Srand(common.SEED)
 	// init ai
-	//self.agent = &robot.SnakeAI{}
-	self.agent = &robot.SarsaAI{}
+	self.agent = AIFactory(ai)
+	if nil == self.agent {
+		return fmt.Errorf("Do not have agent named:\"%s\", please look at the end of \"greedy_snake.go\" for ai name that support!", ai)
+	}
 	err := self.agent.InitTesting()
 	if nil != err {
 		return fmt.Errorf("Agent init failed||err_msg=%s", err.Error())
@@ -248,23 +243,6 @@ func (self *Game) GfxLoop(w window.Window, d gfx.Device) {
 		}
 		// Clear color and depth buffers.
 		d.Clear(d.Bounds(), gfx.Color{1, 1, 1, 1})
-		// update && draw to screen
-		// Draw the snake to the screen.
-		// call the ai
-		self.PlayerApi()
-		// go ahead
-		/*if nil == self.agent.GetData() {
-			log.Printf("=================Error[Agent][GetData]==================")
-		} else {
-			Snake_Pred := self.agent.GetData()
-			for p := Snake_Pred.Front(); nil != p; p = p.Next() {
-				pt := p.Value.(common.Point)
-				pt.X *= common.MAGIC_NUM
-				pt.Y *= common.MAGIC_NUM
-				rect := self.Point2ColorBox(pt)
-				d.Clear(*rect, gfx.Color{1, 0, 0, 1})
-			}
-		}*/
 		self.GoAhead()
 		for p := self.Snake_.Body.Front(); nil != p; p = p.Next() {
 			rect := self.Point2ColorBox(p.Value.(common.Point))
@@ -303,14 +281,10 @@ func (self *Game) GfxLoop(w window.Window, d gfx.Device) {
 			var key_type byte
 			fmt.Scanf("Press Any Key To Continue:%c", &key_type)
 		}
-		// check if dead
 		if self.Snake_.IsDead() {
 			log.Printf("Game Over[Score=%d||Steps=%d]\n", self.Score, self.Steps)
-			/*var key_type byte
-			fmt.Scanf("Press Any Key To Continue:%c", &key_type)*/
 			os.Exit(-1)
 		}
-		// log.Printf("Device size=%v", d.Bounds())
 	}
 }
 
@@ -333,17 +307,6 @@ func (self *Game) GfxLoopTraining(w window.Window, d gfx.Device) {
 			// draw the food to screen
 			food := self.Point2ColorBox(self.FoodPos)
 			d.Clear(*food, gfx.Color{1, 1, 0, 1})
-			// sleep
-			start_time := time.Now().UnixNano() / common.NANOS_TO_MILLISECOND
-			current := time.Now().UnixNano() / common.NANOS_TO_MILLISECOND
-			for {
-				if current >= start_time+common.TIME_FOR_SPEED_CTR {
-					break
-				}
-				current = time.Now().UnixNano() / common.NANOS_TO_MILLISECOND
-				// sleep
-				time.Sleep(common.SLEEP_TIME * time.Millisecond)
-			}
 			// Render the whole frame.
 			d.Render()
 		}
@@ -374,17 +337,6 @@ func (self *Game) GfxLoopTesting(w window.Window, d gfx.Device) {
 			// draw the food to screen
 			food := self.Point2ColorBox(self.FoodPos)
 			d.Clear(*food, gfx.Color{1, 1, 0, 1})
-			// sleep
-			start_time := time.Now().UnixNano() / common.NANOS_TO_MILLISECOND
-			current := time.Now().UnixNano() / common.NANOS_TO_MILLISECOND
-			for {
-				if current >= start_time+common.TIME_FOR_SPEED_CTR {
-					break
-				}
-				current = time.Now().UnixNano() / common.NANOS_TO_MILLISECOND
-				// sleep
-				time.Sleep(common.SLEEP_TIME * time.Millisecond)
-			}
 			// Render the whole frame.
 			d.Render()
 		}
@@ -393,5 +345,17 @@ func (self *Game) GfxLoopTesting(w window.Window, d gfx.Device) {
 			log.Printf("Game Over[Score=%d||Steps=%d]\n", self.Score, self.Steps)
 			self.ReStart()
 		}
+	}
+}
+
+func AIFactory(ai string) common.AI {
+	if "greedy" == ai {
+		return &robot.GreedyAI{}
+	} else if "sarsa" == ai {
+		return &robot.SarsaAI{}
+	} else if "benchmark" == ai {
+		return &robot.BenchMarkAI{} // benchmark ai
+	} else {
+		return nil
 	}
 }

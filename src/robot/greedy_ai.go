@@ -3,6 +3,8 @@ package robot
 import (
 	"common"
 	"container/list"
+	"log"
+	"os"
 )
 
 // the framework of greedy ai
@@ -18,6 +20,8 @@ func (self *GreedyAI) GetData() *list.List {
 }
 
 func (self *GreedyAI) InitTraining() error {
+	log.Print("GreedyAI do not need training")
+	os.Exit(-1)
 	return nil
 }
 

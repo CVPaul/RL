@@ -50,7 +50,6 @@ func (self *SarsaAI) InitTraining() error {
 	self.IterCount = 0
 	self.Alpha = 0.1
 	self.Gama = 0.9
-	self.PowerParam = 0.8 // sqrt
 	self.EpsilonFactor = common.EPSILON_FAC
 	self.Epsilon0 = 1.0
 	self.suffix = "sarsa"
@@ -83,7 +82,6 @@ func (self *SarsaAI) InitTraining() error {
 
 func (self *SarsaAI) InitTesting() error {
 	// defalut param
-	self.PowerParam = 0.5 // sqrt
 	self.EpsilonFactor = common.EPSILON_FAC
 	self.suffix = "sarsa"
 	self.IsTestPhase = true
@@ -111,7 +109,7 @@ func (self *SarsaAI) InitTesting() error {
 	}
 	self.Epsilon0 = 0.0
 	self.Epsilon = self.Epsilon0
-	// last staus
+	// last stauts
 	self.LastStatus = "ZERO#SRL"
 	self.LastReward = common.DEFAULT_REWARD
 	(*self.TheQ)[self.LastStatus] = common.DEFAULT_VALUE // default
@@ -119,12 +117,6 @@ func (self *SarsaAI) InitTesting() error {
 		log.Print("Load %s failed, please check it!", common.PARAM_POLICY_PATH+self.suffix)
 		os.Exit(-1)
 	}
-	/*/ =============For check===============
-	fmt.Printf("param=%v\n", *last_param)
-	fmt.Printf("theQ=%v\n", *self.TheQ)
-	var c byte
-	fmt.Scanf("%c", &c)
-	// =============End for check===============*/
 	return nil
 }
 
@@ -138,16 +130,7 @@ func (self *SarsaAI) Process(status *common.Status) *common.Action {
 	TheQValue := (*self.TheQ)[self.LastStatus] +
 		self.Alpha*(self.LastReward+self.Gama*(*self.TheQ)[st]-(*self.TheQ)[self.LastStatus])
 	if common.DEBUG {
-		/*log.Printf("fuck[cur=%v,lastStatus=%s]:[0][0]=%.4f,[0][1]=%.4f,[0][2]=%.4f,[0][3]=%.4f",
-			status.HeadPos, self.LastStatus,
-			(*self.TheQ)["Lrs000000000400#S"], (*self.TheQ)["Lrs010001000400#S"],
-			(*self.TheQ)["Lrs020002000400#S"], (*self.TheQ)["Lrs030003000400#S"])
-		log.Printf("fuck:[04][L]=%.4f,[04][R]=%.4f,[04][S]=%.4f",
-			(*self.TheQ)["Lrs040003001715#L"], (*self.TheQ)["Lrs040003001715#R"], (*self.TheQ)["Lrs040003001715#S"])*/
-		/*if self.LastStatus == "Lrs000000000400#S" || st == "Lrs000000000400#S" {
-			log.Printf("fuck[last=%s,cur=%s,lrwd=%.0f]:lastQ=%.4f,curQ=%.4f", self.LastStatus, st, self.LastReward,
-				(*self.TheQ)[self.LastStatus], (*self.TheQ)[st])
-		}*/
+		// TODO
 	}
 
 	// ======================================
@@ -166,12 +149,12 @@ func (self *SarsaAI) Process(status *common.Status) *common.Action {
 		if common.VERBOSE == false {
 			log.Printf("save at iteration=%d", self.IterCount)
 		}
-		err := self.SaveTheQ()
-		if nil != err {
-			log.Printf("Iteration=%d||err_msg=%s", self.IterCount, err.Error())
+		if !self.IsTestPhase {
+			err := self.SaveTheQ()
+			if nil != err {
+				log.Printf("Iteration=%d||err_msg=%s", self.IterCount, err.Error())
+			}
 		}
-		//log.Printf("TheQ=%v", *self.TheQ)
-		//os.Exit(-1)
 	}
 	if !self.IsTestPhase && common.VERBOSE {
 		log.Printf("Info:{epsilon:%.4f,IterCount:%d,status=%s,action=%s}\n",
@@ -181,8 +164,6 @@ func (self *SarsaAI) Process(status *common.Status) *common.Action {
 }
 
 func (self *SarsaAI) UpdateEpsilon() {
-	//log.Printf("before||Epsilon=%.4f||fac=%.4f",
-	//	self.Epsilon, common.MINIMIZE_EPSILON)
 	if self.IsTestPhase {
 		self.Epsilon = 0.0
 		return
@@ -190,11 +171,9 @@ func (self *SarsaAI) UpdateEpsilon() {
 	if self.Epsilon <= common.MINIMIZE_EPSILON {
 		self.Epsilon = common.MINIMIZE_EPSILON
 	} else {
-		factor := self.EpsilonFactor / (self.EpsilonFactor + math.Pow(float64(self.IterCount), self.PowerParam))
+		factor := self.EpsilonFactor / (self.EpsilonFactor + math.Pow(float64(self.IterCount), common.POWER_PARAM))
 		self.Epsilon = factor * self.Epsilon0
 	}
-	//log.Printf("after||Epsilon=%.4f||fac=%.4f",
-	//	self.Epsilon, common.MINIMIZE_EPSILON)
 }
 
 func (self *SarsaAI) LoadTheQ() (err error, param *map[string]float64) {
@@ -312,7 +291,7 @@ func (self *SarsaAI) StatusConvert(status *common.Status) string {
 	}
 	qf := utils.GetPhase(status.HeadPos, status.FoodPos)
 	qt := utils.GetPhase(status.TailPos, status.FoodPos)
-	return fmt.Sprintf("%s%s%s%d%d%d", w_l, w_r, w_s, status.Snake.Len(), qf, qt)
+	return fmt.Sprintf("%s%s%s%d%d", w_l, w_r, w_s, qf, qt)
 }
 
 func (self *SarsaAI) EpsilonGreedy(st *common.Status) (action string, status string) {

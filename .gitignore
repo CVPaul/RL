@@ -3,6 +3,3 @@ src/thirdparty/lib
 src/thirdparty/pkg
 ./data/
 *.so
-main
-training
-testing
